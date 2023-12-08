@@ -81,9 +81,13 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
     }
 
     private SmsAutoFillPlugin(Registrar registrar) {
+        try{
         activity = registrar.activity();
         setupChannel(registrar.messenger());
         registrar.addActivityResultListener(activityResultListener);
+        }catch (Exception e){
+            Log.e("Exception",e.toString());
+        }
     }
 
     public void setCode(String code) {
@@ -112,6 +116,7 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
                 task.addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                         try{
                         unregisterReceiver();// unregister existing receiver
                         broadcastReceiver = new SmsBroadcastReceiver(new WeakReference<>(SmsAutoFillPlugin.this),
                                 smsCodeRegexPattern);
@@ -122,6 +127,9 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
                             activity.registerReceiver(broadcastReceiver,
                                     new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION));
                         }
+                         }catch (Exception e){
+            Log.e("Exception",e.toString());
+        }
                         result.success(null);
                     }
                 });
@@ -150,7 +158,7 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
 
     @TargetApi(Build.VERSION_CODES.ECLAIR)
     private void requestHint() {
-
+try {
         if (!isSimSupport()) {
             if (pendingHintResult != null) {
                 pendingHintResult.success(null);
@@ -166,11 +174,11 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
                 .build();
         PendingIntent intent = Auth.CredentialsApi.getHintPickerIntent(
                 mCredentialsClient, hintRequest);
-        try {
+        
             activity.startIntentSenderForResult(intent.getIntentSender(),
                     SmsAutoFillPlugin.PHONE_HINT_REQUEST, null, 0, 0, 0);
         } catch (IntentSender.SendIntentException e) {
-            e.printStackTrace();
+            Log.e("Exception",e.toString());
         }
     }
 
@@ -185,6 +193,7 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
     }
 
     private void unregisterReceiver() {
+        try {
         if (broadcastReceiver != null) {
             try {
                 activity.unregisterReceiver(broadcastReceiver);
@@ -192,6 +201,9 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
                 // silent catch to avoir crash if receiver is not registered
             }
             broadcastReceiver = null;
+        }
+        } catch (IntentSender.SendIntentException e) {
+            Log.e("Exception",e.toString());
         }
     }
 
